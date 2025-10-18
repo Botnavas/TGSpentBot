@@ -1,10 +1,16 @@
 package org.main;
 
-public interface DBInterface {
-    void CreateUser(String name, long id);
-    void CreateUser(User user);
-    boolean CheckUser(long id);
-    User GetUser(long id);
+import java.util.List;
 
-    void ChangeUser(User user);
+public interface DBInterface {
+    void createUser(String name, long id);
+    void createUser(User user);
+    boolean checkUser(long id);
+    User getUser(long id);
+    void changeUser(User user);
+    void setLastCommand(long id, String command);
+    boolean checkTag(long id, String tag);
+    boolean addTag(long id, String tag);
+    boolean deleteTag(long id, String tag);
+    List<String> getTags(long id);
 }

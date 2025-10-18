@@ -6,6 +6,8 @@ public class User {
 
     private UserStatus status;
 
+    private String lastCommand;
+
     public enum UserStatus {
         UNREGISTERED(0),     // не зарегистрирован
         REGISTERED(1) ;     // базовая регистрация
@@ -34,18 +36,28 @@ public class User {
         id = 0;
         name = "";
         status = UserStatus.UNREGISTERED;
+        lastCommand = "";
     }
 
     public User(long id, String name) {
         this.id = id;
         this.name = name;
         status = UserStatus.UNREGISTERED;
+        lastCommand = "";
     }
 
     public User(long id, String name, int status) {
         this.id = id;
         this.name = name;
         this.status = UserStatus.fromCode(status);
+        lastCommand = "";
+    }
+
+    public User(long id, String name, UserStatus status, String lastCommand) {
+        this.id = id;
+        this.name = name;
+        this.status = status;
+        this.lastCommand = lastCommand;
     }
 
     public long getId() {
@@ -72,4 +84,11 @@ public class User {
         this.status = status;
     }
 
+    public String getLastCommand() {
+        return lastCommand;
+    }
+
+    public void setLastCommand(String lastCommand) {
+        this.lastCommand = lastCommand;
+    }
 }
