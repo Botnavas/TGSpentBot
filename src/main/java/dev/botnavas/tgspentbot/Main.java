@@ -1,6 +1,7 @@
-package org.main;
+package dev.botnavas.tgspentbot;
 
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
+import utilites.AppConfig;
 
 public class Main {
     public static void main(String[] args) {
