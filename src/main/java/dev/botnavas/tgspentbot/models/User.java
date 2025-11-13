@@ -1,4 +1,4 @@
-package models;
+package dev.botnavas.tgspentbot.models;
 
 public class User {
     private long id;

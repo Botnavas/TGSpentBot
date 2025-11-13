@@ -1,4 +1,4 @@
-package utilites;
+package dev.botnavas.tgspentbot.utilites;
 
 public class MessageFormatter {
 

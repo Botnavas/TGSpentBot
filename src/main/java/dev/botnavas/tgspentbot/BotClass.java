@@ -1,11 +1,14 @@
 package dev.botnavas.tgspentbot;
 
-import models.Expense;
-import models.Tag;
-import models.User;
+import dev.botnavas.tgspentbot.callback.model.CallbackCommand;
+import dev.botnavas.tgspentbot.models.Expense;
+import dev.botnavas.tgspentbot.models.Tag;
+import dev.botnavas.tgspentbot.models.User;
+import dev.botnavas.tgspentbot.storage.DBInterface;
+import dev.botnavas.tgspentbot.storage.impl.SqlLiteImpl;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -23,9 +26,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import utilites.AppConfig;
-import utilites.InputDetector;
-import utilites.MessageFormatter;
+
+import dev.botnavas.tgspentbot.utilites.AppConfig;
+import dev.botnavas.tgspentbot.utilites.InputDetector;
+import dev.botnavas.tgspentbot.utilites.MessageFormatter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,43 +39,11 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 
-enum CallbackCommand {
-    YESTERDAY("ytd"),
-    TODAY("tdy"),
-    SELECT_DATE("dat"),
-    SELECT_TAG("tag"),
-    EDIT("edt"),
-    CHANGE_SUM("sum"),
-    CHANGE_DATE("cdt"),
-    CHANGE_TAG("ctg"),
-    DELETE("del"),
-    ADD_TAG("addTag"),
-    DATE_SELECTED("dateSelected"),
-    DELETE_TAG("delTag"),
-    MESSAGE_TO_DEL("mtd"),
-    UNKNOWN("");
-
-    private final String shortCommand;
-    CallbackCommand(String shortCommand) {
-        this.shortCommand = shortCommand;
-    }
-
-    public String getShortCommand() {
-        return shortCommand;
-    }
-    public static CallbackCommand fromShortCommand(String shortCommand) {
-        for (CallbackCommand cmd : CallbackCommand.values()) {
-            if (cmd.shortCommand.equals(shortCommand)) {
-                return cmd;
-            }
-        }
-        return UNKNOWN;
-    }
-}
+@Log4j2
 public class BotClass implements LongPollingSingleThreadUpdateConsumer {
-    private static final Logger logger = LoggerFactory.getLogger(BotClass.class);
     private final TelegramClient telegramClient;
     private final DBInterface db;
+
     private final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
             .appendPattern("dd.MM.yyyy")
             .parseDefaulting(ChronoField.ERA, 1) // 1 = н.э. (AD)
@@ -80,40 +52,45 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
 
     public BotClass(String botToken) {
         telegramClient = new OkHttpTelegramClient(botToken);
-        db = new DBClass(AppConfig.getDatabaseUrl());
+        log.info(String.format("BotClass initialized with %s", botToken));
+
+        db = new SqlLiteImpl(AppConfig.getDatabaseUrl());
     }
+
     @Override
     public void consume(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            // Set variables
-            String messageText = update.getMessage().getText();
-            long chatId = update.getMessage().getChatId();
-            String name = update.getMessage().getFrom().getFirstName();
-            db.createUser(name, chatId);
-
-            /*SendMessage message = SendMessage // Create a message object
-                    .builder()
-                    .chatId(chatId)
-                    .text(messageText)
-                    .build();*/
-
-            String lastCommands = db.getUser(chatId).getLastCommand();
-            if(lastCommands.length() > 1) {
-                handleCommandedMessage(chatId, messageText, lastCommands);
-                logger.info("Получено сообщение {}, последняя команада {}", messageText, lastCommands);
-                return;
-            }
-            logger.info("Получено сообщение {}, последняя команада отсутствует", messageText);
-            SendMessage message = createReply(chatId, messageText);
-
-            try {
-                telegramClient.execute(message); // Sending our message object to user
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        }   else if (update.hasCallbackQuery()) {
+        if (update.hasCallbackQuery()) {
             handleCallback(update);
+            return;
         }
+        if (!update.hasMessage() || !update.getMessage().hasText()) {
+            return;
+        }
+
+        var msg = update.getMessage();
+        log.trace(String.format("Get message:\n%s", msg.toString()));
+
+        var messageText = msg.getText();
+        var chatId = msg.getChatId();
+        var name = msg.getFrom().getFirstName();
+
+        db.createUser(name, chatId);
+
+        String lastCommands = db.getUser(chatId).orElseThrow(() -> new RuntimeException()).getLastCommand();
+        if (!lastCommands.isEmpty()) {
+            handleCommandedMessage(chatId, messageText, lastCommands);
+            return;
+        }
+
+        var replyMessage = createReply(chatId, messageText);
+        log.trace(String.format("Created Reply:\n%s", replyMessage.toString()));
+
+        try {
+            telegramClient.execute(createReply(chatId, messageText));
+        } catch (TelegramApiException e) {
+            log.error(String.format("Error when sending reply message:\n%s", e.getMessage()));
+        }
+
     }
 
     private void handleCommandedMessage(long id, String text, String lastCommands) {
@@ -123,17 +100,16 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         }
         SendMessage message;
         boolean needSending = false;
-        //User user = db.getUser(id);
+
         String[] commands = lastCommands.split(";");
         CallbackCommand command = CallbackCommand.fromShortCommand(commands[0]);
         switch (command) {
             case ADD_TAG -> {
-                if (db.addTag(id,text)) {
+                if (db.addTag(id, text)) {
                     db.clearLastCommand(id);
                     message = createAddedTagReply(id);
                     needSending = true;
-                }
-                else {
+                } else {
                     db.clearLastCommand(id);
                     message = createAddedTagReply(id);
                     message.setText("Тег не добавлен. Выберите действие:");
@@ -143,12 +119,11 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
             case DELETE_TAG -> {
                 if (db.deleteTag(id, text)) {
                     db.clearLastCommand(id);
-                    message =  createDeletedTagReply(id, text, true);
+                    message = createDeletedTagReply(id, text, true);
                     needSending = true;
-                }
-                else {
+                } else {
                     db.clearLastCommand(id);
-                    message =  createDeletedTagReply(id, text, false);
+                    message = createDeletedTagReply(id, text, false);
                     needSending = true;
                 }
             }
@@ -170,7 +145,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                 return;
             }
             default -> {
-                message =  createStartMenu(id);
+                message = createStartMenu(id);
                 db.clearLastCommand(id);
                 needSending = true;
             }
@@ -193,7 +168,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
             data[2] = text;
             db.clearLastCommand(uid);
             selectDateHandler(data, mid, uid);
-            if(data.length == 3) {
+            if (data.length == 3) {
                 return;
             }
             try {
@@ -214,9 +189,9 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                 .build();
         db.clearLastCommand(uid);
         try {
-          int mid = telegramClient.execute(message).getMessageId();
-          db.setLastCommand(uid, CallbackCommand.MESSAGE_TO_DEL.getShortCommand()
-                  + ";" + mid);//We delete this message next time
+            int mid = telegramClient.execute(message).getMessageId();
+            db.setLastCommand(uid, CallbackCommand.MESSAGE_TO_DEL.getShortCommand()
+                    + ";" + mid);//We delete this message next time
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -248,7 +223,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
     private void handleCallback(Update update) {
         CallbackQuery query = update.getCallbackQuery();
         boolean isOld = !(query.getMessage() instanceof Message);
-        long uid = isOld? query.getMessage().getChat().getId(): query.getMessage().getChatId();
+        long uid = isOld ? query.getMessage().getChat().getId() : query.getMessage().getChatId();
         String callbackData = query.getData();
         String[] data = callbackData.split(";");
         int mid = query.getMessage().getMessageId();
@@ -260,7 +235,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         CallbackCommand command = CallbackCommand.fromShortCommand(data[0]);
         switch (command) {
             case TODAY, YESTERDAY, SELECT_DATE -> {
-                    selectDateHandler(data, mid, uid);
+                selectDateHandler(data, mid, uid);
             }
             case SELECT_TAG -> {
                 selectTagHandler(data, mid, uid);
@@ -318,7 +293,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                         .text(text).build();
                 try {
                     telegramClient.execute(message);
-                }  catch (TelegramApiException ee) {
+                } catch (TelegramApiException ee) {
                     ee.printStackTrace();
                 }
             }
@@ -329,15 +304,15 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                     + ";"
                     + mid;
             db.setLastCommand(uid, lastCommand);
-            SendMessage message= SendMessage.builder()
+            SendMessage message = SendMessage.builder()
                     .chatId(uid)
                     .text("Введите дату в формате\n" + MessageFormatter.bold("ДД.ММ.ГГГ"))
                     .parseMode("MarkdownV2")
                     .build();
             try {
-               int id = telegramClient.execute(message).getMessageId();
-               db.setLastCommand(uid, lastCommand + ";" + id);
-            }  catch (TelegramApiException ee) {
+                int id = telegramClient.execute(message).getMessageId();
+                db.setLastCommand(uid, lastCommand + ";" + id);
+            } catch (TelegramApiException ee) {
                 ee.printStackTrace();
             }
         }
@@ -380,8 +355,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         }
     }
 
-    private SendMessage createReply(long id, String text)
-    {
+    private SendMessage createReply(long id, String text) {
         switch (text) {
             case "/start" -> {
                 db.clearLastCommand(id);
@@ -419,15 +393,14 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
             default -> {
                 db.clearLastCommand(id);
                 if (InputDetector.getInputType(text).equals(InputDetector.InputType.Number)) {
-                    return answerToNumber(id, (int)Double.parseDouble(text));
+                    return answerToNumber(id, (int) Double.parseDouble(text));
                 }
                 return createStartMenu(id);
             }
         }
     }
 
-    private SendMessage createStartMenu(long id)
-    {
+    private SendMessage createStartMenu(long id) {
         if (!db.checkUser(id)) {
             return null;
         }
@@ -501,8 +474,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         return message;
     }
 
-    private SendMessage createAddedTagReply(long id)
-    {
+    private SendMessage createAddedTagReply(long id) {
         SendMessage message = createStartMenu(id);
         message.setText("Тег добавлен\\. Выберите действие\\:");
         return message;
@@ -537,7 +509,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                 keyboardRows.add(row);
             }
             if ((counter % 2) == 0) {
-                 row = new KeyboardRow();
+                row = new KeyboardRow();
             }
 
             row.add(tag);
@@ -555,8 +527,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         SendMessage message = createStartMenu(id);
         if (success) {
             message.setText("Тег " + MessageFormatter.bold(text) + " успешно удален\\. Выберите команду\\.");
-        }
-        else {
+        } else {
             message.setText("Тег " + MessageFormatter.bold(text) + "не удален\\. Выберите команду\\.");
         }
         return message;
@@ -576,8 +547,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         return message;
     }
 
-    private InlineKeyboardMarkup buildDateSelectionInlineKeyboard(long id, int sum)
-    {
+    private InlineKeyboardMarkup buildDateSelectionInlineKeyboard(long id, int sum) {
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         List<InlineKeyboardRow> rows = new ArrayList<>();
         InlineKeyboardButton yesterday = InlineKeyboardButton.builder()
@@ -600,12 +570,10 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         return new InlineKeyboardMarkup(rows);
     }
 
-    private InlineKeyboardMarkup buildTagSelectionInlineKeyboard(long uid, int sum, String date)
-    {
+    private InlineKeyboardMarkup buildTagSelectionInlineKeyboard(long uid, int sum, String date) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         List<Tag> tags = db.getTagsModels(uid);
-        for (Tag tag : tags)
-        {
+        for (Tag tag : tags) {
             String callbackData = new StringBuilder()
                     .append(CallbackCommand.SELECT_TAG.getShortCommand())
                     .append(";")
@@ -624,8 +592,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
         return new InlineKeyboardMarkup(rows);
     }
 
-    private InlineKeyboardMarkup buildExpenseChangeInlineKeyboard(int expenseId)
-    {
+    private InlineKeyboardMarkup buildExpenseChangeInlineKeyboard(int expenseId) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         InlineKeyboardButton button = InlineKeyboardButton.builder()
                 .text("Изменить дату")
@@ -665,10 +632,10 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
     }
 
     private String generateDateFirstInputText(int sum, LocalDate date) {
-        String message =  generateSumFirstInputText(sum).
+        String message = generateSumFirstInputText(sum).
                 replace("Выберите дату",
                         date.format(dtf).replace(".", "\\."));
-       return message + "\n" + "\uD83C\uDFF7\uFE0F" + MessageFormatter.bold("Выберите тег");
+        return message + "\n" + "\uD83C\uDFF7\uFE0F" + MessageFormatter.bold("Выберите тег");
     }
 
     private String generateTagFirstInputText(int sum, LocalDate date, String tag) {

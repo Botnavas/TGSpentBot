@@ -1,4 +1,4 @@
-package utilites;
+package dev.botnavas.tgspentbot.utilites;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

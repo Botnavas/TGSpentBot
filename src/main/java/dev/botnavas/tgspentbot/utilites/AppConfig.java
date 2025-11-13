@@ -1,7 +1,13 @@
-package utilites;
+package dev.botnavas.tgspentbot.utilites;
 import java.io.*;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Properties;
 
+import dev.botnavas.tgspentbot.Main;
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 public class AppConfig {
     private static final Properties properties = new Properties();
     private static final String CONFIG_FILE = "application.properties";
@@ -10,8 +16,18 @@ public class AppConfig {
     }
 
     private static void loadConfig() {
-        // Сначала пытаемся загрузить из внешнего файла (вне JAR)
-        File externalConfig = new File(CONFIG_FILE);
+        Path jarPath = null;
+        try {
+            jarPath = Paths.get(Main.class
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .toURI())
+                .getParent();
+        } catch(Exception ignore) {}
+        log.warn(jarPath.resolve(CONFIG_FILE).toString());
+
+        File externalConfig = new File(jarPath.resolve(CONFIG_FILE).toString());
         if (externalConfig.exists()) {
             try (FileInputStream input = new FileInputStream(externalConfig)) {
                 properties.load(input);

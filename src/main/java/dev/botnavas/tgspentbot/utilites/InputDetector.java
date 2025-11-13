@@ -1,4 +1,4 @@
-package utilites;
+package dev.botnavas.tgspentbot.utilites;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
