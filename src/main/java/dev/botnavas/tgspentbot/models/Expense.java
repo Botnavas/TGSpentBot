@@ -1,4 +1,4 @@
-package models;
+package dev.botnavas.tgspentbot.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

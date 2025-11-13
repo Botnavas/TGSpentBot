@@ -1,0 +1,2 @@
+db.url=jdbc:sqlite:C:/Path/To/SpentBotDB.db
+bot.token=[Your Token]

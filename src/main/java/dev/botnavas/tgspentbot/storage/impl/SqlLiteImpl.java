@@ -1,16 +1,21 @@
-package dev.botnavas.tgspentbot;
-import models.Expense;
-import models.Tag;
-import models.User;
+package dev.botnavas.tgspentbot.storage.impl;
+import dev.botnavas.tgspentbot.models.Expense;
+import dev.botnavas.tgspentbot.models.Tag;
+import dev.botnavas.tgspentbot.models.User;
+import dev.botnavas.tgspentbot.storage.DBInterface;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class DBClass implements DBInterface{
+import static java.util.Optional.empty;
+
+@Log4j2
+public class SqlLiteImpl implements DBInterface {
    /* public static void main(String[] args) throws SQLException {
 
         System.out.println("Hello world!");
@@ -35,7 +40,7 @@ public class DBClass implements DBInterface{
     Connection connection;
     private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    DBClass(String url)
+    public SqlLiteImpl(String url)
     {
         try {
             connection = DriverManager.getConnection(url);
@@ -69,8 +74,7 @@ public class DBClass implements DBInterface{
 
             statement.close();
         }
-        catch(SQLException e)
-        {
+        catch(SQLException e) {
             e.printStackTrace(System.err);
         }
     }
@@ -78,8 +82,7 @@ public class DBClass implements DBInterface{
 
     @Override
     public void createUser(String name, long id) {
-        User user = new User(id, name);
-        createUser(user);
+        createUser(new User(id, name));
     }
 
     @Override
@@ -96,7 +99,7 @@ public class DBClass implements DBInterface{
             pstmt.executeUpdate();
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            log.error(String.format("Exception while creating user: %s", e.getMessage()));
         }
     }
 
@@ -111,13 +114,13 @@ public class DBClass implements DBInterface{
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            log.error("");
         }
         return false;
     }
 
     @Override
-    public User getUser(long id) {
+    public Optional<User> getUser(long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
@@ -128,15 +131,15 @@ public class DBClass implements DBInterface{
                 user.setName(rs.getString("name"));
                 user.setStatus(User.UserStatus.fromCode(rs.getInt("status")));
                 user.setLastCommand(rs.getString("last_command"));
-                return user;
+                return Optional.of(user);
             }
+
+            return Optional.empty();
         }
         catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            log.error(String.format("Error while getting user with id %s: %s", id, e.getMessage()));
+            return Optional.empty();
         }
-
-        return null;
     }
 
     @Override
@@ -160,9 +163,12 @@ public class DBClass implements DBInterface{
 
     @Override
     public void setLastCommand(long id, String command) {
-        User user = getUser(id);
-        user.setLastCommand(command);
-        changeUser(user);
+        var user = getUser(id);
+        if (user.isEmpty()) {
+            return;
+        }
+        user.get().setLastCommand(command);
+        changeUser(user.get());
     }
 
     @Override

@@ -15,47 +15,91 @@
     </properties>
 
     <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.50.3.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-longpolling</artifactId>
             <version>9.2.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-client</artifactId>
             <version>9.2.0</version>
         </dependency>
-            <dependency>
-                <groupId>org.xerial</groupId>
-                <artifactId>sqlite-jdbc</artifactId>
-                <version>3.50.3.0</version>
-            </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.14</version>
-        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.38</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.14</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.24.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+        <plugin>
+      <artifactId>maven-resources-plugin</artifactId>
+      <version>3.3.1</version>
+      <executions>
+        <execution>
+          <id>copy-config</id>
+          <phase>package</phase>
+          <goals>
+            <goal>copy-resources</goal>
+          </goals>
+          <configuration>
+            <outputDirectory>${project.build.directory}</outputDirectory>
+            <resources>
+              <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <includes>
+                  <include>application.properties</include>
+                </includes>
+              </resource>
+            </resources>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.5.1</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <transformers>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <mainClass>dev.botnavas.tgspentbot.Main</mainClass>
+                                </transformer>
+                        </transformers>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

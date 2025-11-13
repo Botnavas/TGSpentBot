@@ -1,16 +1,17 @@
-package dev.botnavas.tgspentbot;
+package dev.botnavas.tgspentbot.storage;
 
-import models.Expense;
-import models.Tag;
-import models.User;
+import dev.botnavas.tgspentbot.models.Expense;
+import dev.botnavas.tgspentbot.models.Tag;
+import dev.botnavas.tgspentbot.models.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DBInterface {
     void createUser(String name, long id);
     void createUser(User user);
     boolean checkUser(long id);
-    User getUser(long id);
+    Optional<User> getUser(long id);
     void changeUser(User user);
     void setLastCommand(long id, String command);
     void clearLastCommand(long id);
