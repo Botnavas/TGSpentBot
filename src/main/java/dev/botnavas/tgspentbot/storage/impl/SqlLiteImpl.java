@@ -1,7 +1,7 @@
 package dev.botnavas.tgspentbot.storage.impl;
 import dev.botnavas.tgspentbot.models.Expense;
 import dev.botnavas.tgspentbot.models.Tag;
-import dev.botnavas.tgspentbot.models.User;
+import dev.botnavas.tgspentbot.user.model.User;
 import dev.botnavas.tgspentbot.storage.DBInterface;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -11,8 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static java.util.Optional.empty;
 
 @Log4j2
 public class SqlLiteImpl implements DBInterface {

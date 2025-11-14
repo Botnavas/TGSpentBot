@@ -3,7 +3,7 @@ package dev.botnavas.tgspentbot;
 import dev.botnavas.tgspentbot.callback.model.CallbackCommand;
 import dev.botnavas.tgspentbot.models.Expense;
 import dev.botnavas.tgspentbot.models.Tag;
-import dev.botnavas.tgspentbot.models.User;
+import dev.botnavas.tgspentbot.user.model.User;
 import dev.botnavas.tgspentbot.storage.DBInterface;
 import dev.botnavas.tgspentbot.storage.impl.SqlLiteImpl;
 import lombok.extern.log4j.Log4j2;

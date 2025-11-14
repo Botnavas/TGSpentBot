@@ -23,7 +23,7 @@ public class AppConfig {
     @Getter
     private static String dbPass;
 
-    public static void loadConfig(String config_file) {
+    public static void loadConfig(String configFile) {
         Path jarPath = null;
         try {
             jarPath = Paths.get(Main.class
@@ -31,11 +31,11 @@ public class AppConfig {
                             .getCodeSource()
                             .getLocation()
                             .toURI())
-                    .getParent();
+                            .getParent();
         } catch (Exception ignore) {
         }
 
-        var path = jarPath == null ? config_file : jarPath.resolve(config_file).toString();
+        var path = jarPath == null ? configFile : jarPath.resolve(configFile).toString();
 
         log.trace(String.format("Finding config in dir - %s", path));
 

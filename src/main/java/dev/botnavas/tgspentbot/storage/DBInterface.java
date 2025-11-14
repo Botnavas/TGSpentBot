@@ -2,7 +2,7 @@ package dev.botnavas.tgspentbot.storage;
 
 import dev.botnavas.tgspentbot.models.Expense;
 import dev.botnavas.tgspentbot.models.Tag;
-import dev.botnavas.tgspentbot.models.User;
+import dev.botnavas.tgspentbot.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
