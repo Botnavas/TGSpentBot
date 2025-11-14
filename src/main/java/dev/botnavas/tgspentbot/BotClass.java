@@ -7,7 +7,6 @@ import dev.botnavas.tgspentbot.models.User;
 import dev.botnavas.tgspentbot.storage.DBInterface;
 import dev.botnavas.tgspentbot.storage.impl.SqlLiteImpl;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
@@ -46,15 +45,16 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
 
     private final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
             .appendPattern("dd.MM.yyyy")
-            .parseDefaulting(ChronoField.ERA, 1) // 1 = н.э. (AD)
+            .parseDefaulting(ChronoField.ERA, 1)
             .toFormatter()
             .withResolverStyle(ResolverStyle.STRICT);
 
-    public BotClass(String botToken) {
+    public BotClass() {
+        var botToken = AppConfig.getBotToken();
         telegramClient = new OkHttpTelegramClient(botToken);
         log.info(String.format("BotClass initialized with %s", botToken));
 
-        db = new SqlLiteImpl(AppConfig.getDatabaseUrl());
+        db = new SqlLiteImpl(AppConfig.getDbUrl());
     }
 
     @Override
@@ -198,7 +198,6 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
     }
 
     private void handleCancelMessage(long id, String lastCommands) {
-        User user = db.getUser(id);
         String[] commands = lastCommands.split(";");
         String lastCommand = commands[0];
         SendMessage message;
@@ -362,7 +361,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
                 return createStartMenu(id);
             }
             case "Зарегистрироваться" -> {
-                User user = db.getUser(id);
+                User user = db.getUser(id).orElseThrow(() -> new RuntimeException());
                 user.setStatus(User.UserStatus.REGISTERED);
                 user.setLastCommand(text);
                 db.changeUser(user);
@@ -374,7 +373,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
 
             }
             case "Добавить тег" -> {
-                User user = db.getUser(id);
+                User user = db.getUser(id).orElseThrow(() -> new RuntimeException());
                 user.setLastCommand(CallbackCommand.ADD_TAG.getShortCommand());
                 db.changeUser(user);
                 SendMessage message = createTagListMessage(id);
@@ -384,7 +383,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
             }
 
             case "Удалить тег" -> {
-                User user = db.getUser(id);
+                User user = db.getUser(id).orElseThrow(() -> new RuntimeException());
                 user.setLastCommand(CallbackCommand.DELETE_TAG.getShortCommand());
                 db.changeUser(user);
                 SendMessage message = createDeleteTagMenu(id);
@@ -405,7 +404,7 @@ public class BotClass implements LongPollingSingleThreadUpdateConsumer {
             return null;
         }
 
-        User user = db.getUser(id);
+        User user = db.getUser(id).orElseThrow(() -> new RuntimeException());
         switch (user.getStatus()) {
             case UNREGISTERED -> {
 

@@ -1,61 +1,71 @@
 package dev.botnavas.tgspentbot.utilites;
-import java.io.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.Properties;
 
 import dev.botnavas.tgspentbot.Main;
+import dev.botnavas.tgspentbot.exception.model.ConfigException;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public class AppConfig {
-    private static final Properties properties = new Properties();
-    private static final String CONFIG_FILE = "application.properties";
-    static {
-        loadConfig();
-    }
+    @Getter
+    private static String botToken;
+    @Getter
+    private static String dbUrl;
+    @Getter
+    private static String dbUser;
+    @Getter
+    private static String dbPass;
 
-    private static void loadConfig() {
+    public static void loadConfig(String config_file) {
         Path jarPath = null;
         try {
             jarPath = Paths.get(Main.class
-                .getProtectionDomain()
-                .getCodeSource()
-                .getLocation()
-                .toURI())
-                .getParent();
-        } catch(Exception ignore) {}
-        log.warn(jarPath.resolve(CONFIG_FILE).toString());
+                            .getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI())
+                    .getParent();
+        } catch (Exception ignore) {
+        }
 
-        File externalConfig = new File(jarPath.resolve(CONFIG_FILE).toString());
-        if (externalConfig.exists()) {
-            try (FileInputStream input = new FileInputStream(externalConfig)) {
-                properties.load(input);
-                System.out.println("Loaded configuration from external file: " + CONFIG_FILE);
-            } catch (IOException e) {
-                System.err.println("Error loading external config: " + e.getMessage());
-            }
-        } else {
-            // Если внешнего файла нет, загружаем из ресурсов (внутри JAR)
-            try (InputStream input = AppConfig.class.getClassLoader()
-                    .getResourceAsStream(CONFIG_FILE)) {
-                if (input != null) {
-                    properties.load(input);
-                    System.out.println("Loaded configuration from resources");
-                } else {
-                    throw new RuntimeException("Config file not found in resources: " + CONFIG_FILE);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Error loading config from resources", e);
-            }
+        var path = jarPath == null ? config_file : jarPath.resolve(config_file).toString();
+
+        log.trace(String.format("Finding config in dir - %s", path));
+
+        File externalConfig = new File(path);
+        if (!externalConfig.exists()) {
+            throw new ConfigException(String.format("Config file does not exists - %s", path));
+        }
+
+        try (FileInputStream input = new FileInputStream(externalConfig)) {
+            var properties = new Properties();
+            properties.load(input);
+            loadConfig(properties);
+            log.info(String.format("Config loaded - %s", path));
+        } catch (IOException e) {
+            throw new ConfigException(String.format("IOException while loading %s\n%s", path, e.getMessage()));
         }
     }
 
-    public static String getDatabaseUrl() {
-        return properties.getProperty("db.url");
+    private static void loadConfig(Properties prop) {
+        botToken = getProperty(prop, "bot.token");
+        dbUrl = getProperty(prop, "db.url");
+        dbUser = getProperty(prop, "db.user");
+        dbPass = getProperty(prop, "db.password");
     }
 
-    public static String getBotToken() {
-        return properties.getProperty("bot.token");
+    private static String getProperty(Properties prop, String prop_name) {
+        var result = prop.getProperty(prop_name);
+        if (result == null) {
+            throw new ConfigException(String.format("Property %s not found in config", prop_name));
+        }
+        return result;
     }
 }
