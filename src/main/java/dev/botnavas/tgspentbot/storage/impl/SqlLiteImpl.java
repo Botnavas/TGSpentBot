@@ -57,9 +57,9 @@ public class SqlLiteImpl implements DBInterface {
                     "status integer)");
 
             statement.executeUpdate("create table if not exists tags (" +
-                    "id integer primary key autoincrement, " +
-                    "user_id bigint not null, " +
-                    "name string not null, " +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "user_id bigint NOT NULL, " +
+                    "name string NOT NULL, " +
                     "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, " +
                     "UNIQUE(user_id, name))");
 
