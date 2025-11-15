@@ -1,4 +1,4 @@
-package dev.botnavas.tgspentbot.exception.model;
+package dev.botnavas.tgspentbot.config.exception;
 
 import lombok.NoArgsConstructor;
 

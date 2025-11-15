@@ -1,8 +1,8 @@
 package dev.botnavas.tgspentbot;
 
+import dev.botnavas.tgspentbot.config.AppConfig;
 import lombok.extern.log4j.Log4j2;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
-import dev.botnavas.tgspentbot.utilites.AppConfig;
 
 @Log4j2
 public class Main {
