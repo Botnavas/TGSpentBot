@@ -62,7 +62,8 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.1</version> <scope>test</scope>
+            <version>5.10.1</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -71,54 +72,61 @@
             <version>5.10.1</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.7</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-        <plugin>
-      <artifactId>maven-resources-plugin</artifactId>
-      <version>3.3.1</version>
-      <executions>
-        <execution>
-          <id>copy-config</id>
-          <phase>package</phase>
-          <goals>
-            <goal>copy-resources</goal>
-          </goals>
-          <configuration>
-            <outputDirectory>${project.build.directory}</outputDirectory>
-            <resources>
-              <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
-                <includes>
-                  <include>application.properties</include>
-                </includes>
-              </resource>
-            </resources>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.5.1</version>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>shade</goal>
-                    </goals>
-                    <configuration>
-                        <transformers>
-                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                <mainClass>dev.botnavas.tgspentbot.Main</mainClass>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-config</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>application.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>dev.botnavas.tgspentbot.Main</mainClass>
                                 </transformer>
-                        </transformers>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
