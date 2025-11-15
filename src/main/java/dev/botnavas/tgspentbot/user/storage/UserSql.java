@@ -1,8 +1,8 @@
 package dev.botnavas.tgspentbot.user.storage;
 
 public class UserSql {
-    public static final String FIND_BY_ID = "SELECT *" +
-            "FROM exchange.users" +
+    public static final String FIND_BY_ID = "SELECT * " +
+            "FROM exchange.users " +
             "WHERE id = ?";
 
     public static final String CREATE_USER = "INSERT INTO " +
