@@ -1,12 +1,13 @@
-package dev.botnavas.tgspentbot.storage.impl;
+package dev.botnavas.tgspentbot.storage.model.impl;
 
-import dev.botnavas.tgspentbot.utilites.AppConfig;
+import dev.botnavas.tgspentbot.config.AppConfig;
+import dev.botnavas.tgspentbot.storage.model.DBConnection;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.*;
 
 @Log4j2
-public class PGConnection {
+public class PGConnection implements DBConnection {
     private final Connection connection;
 
     public PGConnection() throws SQLException {
@@ -14,7 +15,7 @@ public class PGConnection {
                 AppConfig.getDbUrl(),
                 AppConfig.getDbUser(),
                 AppConfig.getDbPass());
-        log.info(String.format("Connected to DB"));
+        log.info("Connected to DB");
     }
 
     public PreparedStatement prepare(String sqlText) throws SQLException {

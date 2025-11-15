@@ -1,12 +1,11 @@
 package dev.botnavas.tgspentbot.user.storage;
 
-import dev.botnavas.tgspentbot.storage.impl.PGConnection;
+import dev.botnavas.tgspentbot.storage.model.impl.PGConnection;
 import dev.botnavas.tgspentbot.user.model.User;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
-import java.sql.SQLType;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.Optional;

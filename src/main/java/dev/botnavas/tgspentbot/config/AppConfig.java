@@ -1,4 +1,4 @@
-package dev.botnavas.tgspentbot.utilites;
+package dev.botnavas.tgspentbot.config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import dev.botnavas.tgspentbot.Main;
-import dev.botnavas.tgspentbot.exception.model.ConfigException;
+import dev.botnavas.tgspentbot.config.exception.ConfigException;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
