@@ -1,7 +1,6 @@
 package dev.botnavas.tgspentbot.userstate.storage;
 
 import dev.botnavas.tgspentbot.storage.model.DBConnection;
-import dev.botnavas.tgspentbot.storage.model.impl.PGConnection;
 import dev.botnavas.tgspentbot.userstate.model.UserRole;
 import dev.botnavas.tgspentbot.userstate.model.UserState;
 import dev.botnavas.tgspentbot.userstate.model.UserStates;
