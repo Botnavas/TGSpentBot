@@ -7,6 +7,6 @@ public class UserMessagesSql {
             "(message_id, state, sent, sum, date, tag_id) " +
             "VALUES(?, ?, ?, ?, ?, ?)";
     public static final String UPDATE = "UPDATE exchange.user_messages " +
-            "message_id = ?, state = ?, sent = ?, sum = ?, date = ?, tag_id = ? " +
+            "SET message_id = ?, state = ?, sent = ?, sum = ?, date = ?, tag_id = ? " +
             "WHERE message_id = ?";
 }

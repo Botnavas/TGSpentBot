@@ -11,4 +11,12 @@ public class UserState {
     UserStates state;
     long botMessageId;
     UserRole role;
+
+    public UserState setDeafult()
+    {
+        state = UserStates.DEFAULT;
+        //role = UserRole.USER;
+        botMessageId = 0;
+        return this;
+    }
 }

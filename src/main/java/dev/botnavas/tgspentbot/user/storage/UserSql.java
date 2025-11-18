@@ -5,6 +5,10 @@ public class UserSql {
             "FROM exchange.users " +
             "WHERE id = ?";
 
+    public static final String FIND_BY_CHAT_ID = "SELECT * " +
+            "FROM exchange.users " +
+            "WHERE chat_id = ?";
+
     public static final String CREATE_USER = "INSERT INTO " +
             "exchange.users(id, chat_id, username, first_name, second_name, last_interaction_dttm) " +
             "VALUES (?, ?, ?, ?, ?, ?)";

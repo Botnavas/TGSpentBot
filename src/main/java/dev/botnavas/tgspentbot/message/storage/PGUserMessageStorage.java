@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Log4j2
-public class PGUserMessageStorage implements UserMessageStorage{
+public class PGUserMessageStorage implements UserMessageStorage {
     private DBConnection connection;
 
     @Override
@@ -29,7 +29,7 @@ public class PGUserMessageStorage implements UserMessageStorage{
 
             return Optional.of(UserMessage.builder()
                     .messageId(rs.getLong("message_id"))
-                    .state(MessageState.valueOf(rs.getString("state")))
+                    .state(MessageState.fromString(rs.getString("state")))
                     .sent(rs.getObject("sent", LocalDateTime.class))
                     .sum(rs.getInt("sum"))
                     .date(rs.getObject("date", LocalDate.class))
@@ -37,6 +37,9 @@ public class PGUserMessageStorage implements UserMessageStorage{
                     .build());
         } catch (SQLException e) {
             log.error(String.format("Exception while finding user message by message id %s: %s", messageId, e.getMessage()));
+            return Optional.empty();
+        } catch (IllegalArgumentException e) {
+            log.error(String.format("Exception while parsing message state for id %s: %s", messageId, e.getMessage()));
             return Optional.empty();
         }
     }
@@ -53,8 +56,8 @@ public class PGUserMessageStorage implements UserMessageStorage{
 
             ps.executeUpdate();
 
-            return  Optional.of(message);
-        } catch(SQLException e) {
+            return Optional.of(message);
+        } catch (SQLException e) {
             log.error(String.format("Exception while creating user message:\n%s\nMessage: %s", message.toString(), e.getMessage()));
             return Optional.empty();
         }
@@ -72,8 +75,8 @@ public class PGUserMessageStorage implements UserMessageStorage{
 
             ps.executeUpdate();
 
-            return  Optional.of(message);
-        } catch(SQLException e) {
+            return Optional.of(message);
+        } catch (SQLException e) {
             log.error(String.format("Exception while updating user message:\n%s\nMessage: %s", message.toString(), e.getMessage()));
             return Optional.empty();
         }

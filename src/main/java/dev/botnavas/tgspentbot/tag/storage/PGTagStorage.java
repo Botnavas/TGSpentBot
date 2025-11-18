@@ -1,5 +1,6 @@
 package dev.botnavas.tgspentbot.tag.storage;
 
+import dev.botnavas.tgspentbot.config.exception.DoubleTagNameException;
 import dev.botnavas.tgspentbot.storage.model.DBConnection;
 import dev.botnavas.tgspentbot.tag.model.Tag;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,10 @@ public class PGTagStorage implements TagStorage{
             return Optional.of(tag);
 
         } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                log.warn("Duplicate tag name attempted.");
+                throw new DoubleTagNameException();
+            }
             log.error(String.format("Exception while creating tag:\n%s\nMessage: %s", tag.toString(), e.getMessage()));
             return Optional.empty();
         }

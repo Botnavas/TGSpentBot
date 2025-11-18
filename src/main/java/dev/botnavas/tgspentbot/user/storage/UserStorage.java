@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface UserStorage {
     Optional<User> findById(long userId);
+    Optional<User> findByChatId(long chatId);
     Optional<User> createUser(User user);
 }

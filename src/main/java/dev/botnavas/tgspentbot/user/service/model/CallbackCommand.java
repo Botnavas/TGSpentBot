@@ -1,15 +1,16 @@
-package dev.botnavas.tgspentbot.userstate.model;
+package dev.botnavas.tgspentbot.user.service.model;
 
 import java.util.stream.Stream;
 
-public enum UserStates {
+public enum CallbackCommand {
     NEW_TAG("new_tag"),
+    TAG_DELETE_MENU("tag_delete_menu"),
     DELETE_TAG("delete_tag"),
     STAT_MENU("stat_menu"),
-    DEFAULT("d");
+    BACK("back"),
+    UNCHANGABLE("ucb");
     private final String data;
-
-    UserStates(String data) {
+    CallbackCommand(String data) {
         this.data = data;
     }
 
@@ -18,8 +19,8 @@ public enum UserStates {
         return data;
     }
 
-    public static UserStates fromString(String data) {
-        return Stream.of(UserStates.values())
+    public static CallbackCommand fromString(String data) {
+        return Stream.of(CallbackCommand.values())
                 .filter(e -> e.data.equalsIgnoreCase(data))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No enum constant with data value: " + data));

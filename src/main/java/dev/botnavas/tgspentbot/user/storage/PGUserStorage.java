@@ -40,6 +40,30 @@ public class PGUserStorage implements UserStorage {
     }
 
     @Override
+    public Optional<User> findByChatId(long chatId) {
+        try (var ps = connection.prepare(UserSql.FIND_BY_CHAT_ID)) {
+            ps.setLong(1, chatId);
+            var rs = ps.executeQuery();
+
+            if (!rs.next()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(User.builder()
+                    .id(rs.getLong("id"))
+                    .chatId(rs.getLong("chat_id"))
+                    .userName(rs.getString("username"))
+                    .firstName(rs.getString("first_name"))
+                    .secondName(rs.getString("second_name"))
+                    .lastInteraction(rs.getObject("last_interaction_dttm", LocalDateTime.class))
+                    .build());
+        } catch (SQLException e) {
+            log.error(String.format("Exception while finding user with chat_id %s: %s", chatId, e.getMessage()));
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<User> createUser(User user) {
         try (var ps = connection.prepare(UserSql.CREATE_USER)) {
             ps.setLong(1, user.getId());

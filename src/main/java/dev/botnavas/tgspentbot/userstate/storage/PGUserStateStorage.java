@@ -27,12 +27,15 @@ public class PGUserStateStorage implements UserStateStorage {
 
             return Optional.of(UserState.builder()
                     .userId(rs.getLong("user_id"))
-                    .state(UserStates.valueOf(rs.getString("state")))
+                    .state(UserStates.fromString(rs.getString("state")))
                     .botMessageId(rs.getLong("bot_message_id"))
-                    .role(UserRole.valueOf(rs.getString("role")))
+                    .role(UserRole.fromString(rs.getString("role")))
                     .build());
         } catch (SQLException e) {
             log.error(String.format("Exception while finding user state by user id %s: %s", userId, e.getMessage()));
+            return Optional.empty();
+        } catch (IllegalArgumentException e) {
+            log.error(String.format("Exception while parcing state or role for user id %s: %s", userId, e.getMessage()));
             return Optional.empty();
         }
     }

@@ -7,6 +7,6 @@ public class UserStateSql {
             "(user_id, state, bot_message_id, role) " +
             "VALUES(?, ?, ?, ?)";
     public static final String UPDATE = "UPDATE exchange.user_state " +
-        "state = ?, bot_message_id = ?, role = ? " +
+        "SET state = ?, bot_message_id = ?, role = ? " +
         "WHERE user_id = ?";
 }
