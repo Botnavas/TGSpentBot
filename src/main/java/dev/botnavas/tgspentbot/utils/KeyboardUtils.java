@@ -1,5 +1,6 @@
 package dev.botnavas.tgspentbot.utils;
 
+import dev.botnavas.tgspentbot.message.model.MessageState;
 import dev.botnavas.tgspentbot.tag.model.Tag;
 import dev.botnavas.tgspentbot.tag.storage.TagStorage;
 import dev.botnavas.tgspentbot.user.service.model.CallbackCommand;
@@ -14,11 +15,11 @@ import java.util.List;
 public class KeyboardUtils {
     public static InlineKeyboardMarkup createMainMenu() {
         List<InlineKeyboardRow> rows = new ArrayList<>();
-        InlineKeyboardButton button = InlineKeyboardButton.builder()
+        var button = InlineKeyboardButton.builder()
                 .text("Добавить тег")
                 .callbackData(CallbackCommand.NEW_TAG.toString())
                 .build();
-        InlineKeyboardRow row = new InlineKeyboardRow(button);
+        var row = new InlineKeyboardRow(button);
         rows.add(row);
 
         button = InlineKeyboardButton.builder()
@@ -53,8 +54,7 @@ public class KeyboardUtils {
             rows.add(row);
         }
 
-        if (command.equals(CallbackCommand.DELETE_TAG))
-        {
+        if (command.equals(CallbackCommand.DELETE_TAG)) {
             button = InlineKeyboardButton.builder()
                     .text("Вернуться назад")
                     .callbackData(CallbackCommand.BACK.toString())
@@ -63,6 +63,127 @@ public class KeyboardUtils {
             rows.add(row);
         }
 
-       return new InlineKeyboardMarkup(rows);
+        if (command.equals(CallbackCommand.SET_TAG))
+        {
+            button = InlineKeyboardButton.builder()
+                    .text("Изменить дату")
+                    .callbackData(CallbackCommand.SET_DATA.toString())
+                    .build();
+            row = new InlineKeyboardRow(button);
+            rows.add(row);
+
+            button = InlineKeyboardButton.builder()
+                    .text("Изменить сумму")
+                    .callbackData(CallbackCommand.SET_SUM.toString())
+                    .build();
+            row = new InlineKeyboardRow(button);
+            rows.add(row);
+        }
+
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public static InlineKeyboardMarkup createSumKeyboard(MessageState state, User user, TagStorage tagStorage)
+    {
+        InlineKeyboardRow row;
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        InlineKeyboardButton button;
+
+        switch (state) {
+            case UNCHANGABLE -> {
+
+            }
+            case WAIT_FOR_TAG -> {
+                return createTagKeyboard(user,tagStorage, CallbackCommand.SET_TAG);
+            }
+            case WAIT_FOR_DATA -> {
+                button = InlineKeyboardButton.builder()
+                        .text("Вчера")
+                        .callbackData(CallbackCommand.YESTERDAY.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+
+                button = InlineKeyboardButton.builder()
+                        .text("Сегодня")
+                        .callbackData(CallbackCommand.TODAY.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+
+                button = InlineKeyboardButton.builder()
+                        .text("Ввести дату")
+                        .callbackData(CallbackCommand.WAIT_FOR_DATA_SEND.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+
+                button = InlineKeyboardButton.builder()
+                        .text("Изменить сумму")
+                        .callbackData(CallbackCommand.SET_SUM.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+            }
+
+            case SAVED_CHANGABLE -> {
+                button = InlineKeyboardButton.builder()
+                        .text("Изменить сумму")
+                        .callbackData(CallbackCommand.SET_SUM.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+
+                button = InlineKeyboardButton.builder()
+                        .text("Изменить дату")
+                        .callbackData(CallbackCommand.SET_DATA.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+
+                button = InlineKeyboardButton.builder()
+                        .text("Изменить тег")
+                        .callbackData(CallbackCommand.SET_TAG.toString())
+                        .build();
+                row = new InlineKeyboardRow(button);
+                rows.add(row);
+            }
+        }
+
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public static InlineKeyboardMarkup createUnchangableMarkup() {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public static  InlineKeyboardMarkup createSavedChangableMarkup() {
+        InlineKeyboardRow row;
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        InlineKeyboardButton button;
+
+        button = InlineKeyboardButton.builder()
+                .text("Изменить сумму")
+                .callbackData(CallbackCommand.SET_SUM.toString())
+                .build();
+        row = new InlineKeyboardRow(button);
+        rows.add(row);
+
+        button = InlineKeyboardButton.builder()
+                .text("Изменить дату")
+                .callbackData(CallbackCommand.SET_DATA.toString())
+                .build();
+        row = new InlineKeyboardRow(button);
+        rows.add(row);
+
+        button = InlineKeyboardButton.builder()
+                .text("Изменить тег")
+                .callbackData(CallbackCommand.SET_TAG.toString())
+                .build();
+        row = new InlineKeyboardRow(button);
+        rows.add(row);
+
+        return new InlineKeyboardMarkup(rows);
     }
 }

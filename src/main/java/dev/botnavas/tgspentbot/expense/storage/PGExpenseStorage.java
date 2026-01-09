@@ -72,4 +72,29 @@ public class PGExpenseStorage implements ExpenseStorage{
             return false;
         }
     }
+
+    @Override
+    public Optional<Expense> update(Expense expense) {
+        try (var ps = connection.prepare(ExpenseSql.UPDATE)) {
+            ps.setLong(1, expense.getUserId());
+            ps.setInt(2, expense.getTagId());
+            ps.setInt(3, expense.getSum());
+            ps.setObject(4, expense.getDate(), Types.DATE);
+
+            ps.setInt(5, expense.getId());
+
+            var rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(expense);
+            }
+
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            log.error(String.format("Exception while updating expense:\n%s\nMessage: %s",
+                    expense.toString(), e.getMessage()));
+            return Optional.empty();
+        }
+    }
 }

@@ -6,6 +6,8 @@ public enum UserStates {
     NEW_TAG("new_tag"),
     DELETE_TAG("delete_tag"),
     STAT_MENU("stat_menu"),
+    WAIT_FOR_DATA_INPUT("data"),
+    CHANGE_SUM("change_sum"),
     DEFAULT("d");
     private final String data;
 

@@ -8,6 +8,12 @@ public enum CallbackCommand {
     DELETE_TAG("delete_tag"),
     STAT_MENU("stat_menu"),
     BACK("back"),
+    SET_TAG("STG"),
+    SET_DATA("SDT"),
+    SET_SUM("CHS"),
+    WAIT_FOR_DATA_SEND("WFD"),
+    YESTERDAY("YTD"),
+    TODAY("TDY"),
     UNCHANGABLE("ucb");
     private final String data;
     CallbackCommand(String data) {

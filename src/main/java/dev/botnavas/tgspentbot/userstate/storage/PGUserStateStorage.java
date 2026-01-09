@@ -50,8 +50,8 @@ public class PGUserStateStorage implements UserStateStorage {
 
             ps.executeUpdate();
 
-            return  Optional.of(userState);
-        } catch(SQLException e) {
+            return Optional.of(userState);
+        } catch (SQLException e) {
             log.error(String.format("Exception while creating user state:\n%s\nMessage: %s", userState.toString(), e.getMessage()));
             return Optional.empty();
         }
@@ -67,12 +67,30 @@ public class PGUserStateStorage implements UserStateStorage {
 
             ps.executeUpdate();
 
-            return  Optional.of(userState);
+            return Optional.of(userState);
         } catch (SQLException e) {
             log.error(String.format("Exception while updating user state:\n%s\nMessage: %s", userState.toString(), e.getMessage()));
             return Optional.empty();
         }
     }
 
+    @Override
+    public Optional<UserState> setDefault(long userId) {
+        try (var ps = connection.prepare(UserStateSql.SET_DEFAULT)) {
+            ps.setLong(1, userId);
+            var rs = ps.executeQuery();
 
+            if (rs.next()) {
+                return Optional.of(UserState.builder()
+                        .userId(rs.getLong("user_id"))
+                        .state(UserStates.valueOf(rs.getString("state")))
+                        .botMessageId(rs.getLong("bot_message_id"))
+                        .role(UserRole.valueOf(rs.getString("role")))
+                        .build());
+            }
+        } catch (SQLException e) {
+            log.error(String.format("Error resetting state for userId: %d. Message: %s", userId, e.getMessage()));
+        }
+        return Optional.empty();
+    }
 }

@@ -18,9 +18,10 @@ public class PGUserMessageStorage implements UserMessageStorage {
     private DBConnection connection;
 
     @Override
-    public Optional<UserMessage> findById(long messageId) {
+    public Optional<UserMessage> findById(long messageId, long userId) {
         try (var ps = connection.prepare(UserMessagesSql.FIND_BY_ID)) {
             ps.setLong(1, messageId);
+            ps.setLong(2, userId);
             var rs = ps.executeQuery();
 
             if (!rs.next()) {
@@ -34,6 +35,8 @@ public class PGUserMessageStorage implements UserMessageStorage {
                     .sum(rs.getInt("sum"))
                     .date(rs.getObject("date", LocalDate.class))
                     .tagId(rs.getInt("tag_id"))
+                    .userId(rs.getLong("user_id"))
+                    .expenseId(rs.getInt("expense_id"))
                     .build());
         } catch (SQLException e) {
             log.error(String.format("Exception while finding user message by message id %s: %s", messageId, e.getMessage()));
@@ -53,6 +56,8 @@ public class PGUserMessageStorage implements UserMessageStorage {
             ps.setInt(4, message.getSum());
             ps.setObject(5, message.getDate(), Types.DATE);
             ps.setInt(6, message.getTagId());
+            ps.setLong(7, message.getUserId());
+            ps.setInt(8, message.getExpenseId());
 
             ps.executeUpdate();
 
@@ -64,14 +69,18 @@ public class PGUserMessageStorage implements UserMessageStorage {
     }
 
     @Override
-    public Optional<UserMessage> update(UserMessage message) {
+    public Optional<UserMessage> update(UserMessage message, long oldID) {
         try (var ps = connection.prepare(UserMessagesSql.UPDATE)) {
-            ps.setString(1, message.getState().toString());
-            ps.setObject(2, message.getSent(), Types.TIMESTAMP);
-            ps.setInt(3, message.getSum());
-            ps.setObject(4, message.getDate(), Types.DATE);
-            ps.setInt(5, message.getTagId());
-            ps.setLong(6, message.getMessageId());
+            ps.setLong(1, message.getMessageId());
+            ps.setString(2, message.getState().toString());
+            ps.setObject(3, message.getSent(), Types.TIMESTAMP);
+            ps.setInt(4, message.getSum());
+            ps.setObject(5, message.getDate(), Types.DATE);
+            ps.setInt(6, message.getTagId());
+            ps.setInt(7, message.getExpenseId());
+
+            ps.setLong(8, oldID);
+            ps.setLong(9, message.getUserId());
 
             ps.executeUpdate();
 

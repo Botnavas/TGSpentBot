@@ -9,4 +9,9 @@ public class ExpenseSql {
             "RETURNING id";
     public static final String DELETE = "DELETE FROM exchange.expenses " +
             "WHERE id = ?";
+
+    public static final String UPDATE = "UPDATE exchange.expenses " +
+            "SET user_id = ?, tag_id = ?, sum = ?, date = ? " +
+            "WHERE id = ? " +
+            "RETURNING id";
 }

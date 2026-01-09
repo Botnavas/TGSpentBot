@@ -15,7 +15,6 @@ public class UserState {
     public UserState setDeafult()
     {
         state = UserStates.DEFAULT;
-        //role = UserRole.USER;
         botMessageId = 0;
         return this;
     }

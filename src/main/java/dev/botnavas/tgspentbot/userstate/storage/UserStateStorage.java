@@ -8,4 +8,5 @@ public interface UserStateStorage {
     Optional<UserState> findByUserId(long userId);
     Optional<UserState> create(UserState userState);
     Optional<UserState> update(UserState userState);
+    Optional<UserState> setDefault(long userId);
 }

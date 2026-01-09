@@ -16,8 +16,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import java.util.Optional;
-
 @Log4j2
 public class BotService implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
@@ -60,7 +58,12 @@ public class BotService implements LongPollingSingleThreadUpdateConsumer {
         switch (state.getState()) {
             case NEW_TAG -> {
                 userService.addNewTag(messageText, user);
-                return;
+            }
+            case WAIT_FOR_DATA_INPUT -> {
+                userService.handleDateMessage(user, messageText);
+            }
+            case DEFAULT -> {
+                userService.handleDefaultMessage(messageText, user);
             }
         }
     }
@@ -102,6 +105,15 @@ public class BotService implements LongPollingSingleThreadUpdateConsumer {
             case DELETE_TAG -> {
                 userService.handleDeleteTagCommand(user,
                         Integer.parseInt(commandData[1]), messageId);
+            }
+            case YESTERDAY, TODAY -> {
+                userService.handleDateOnButtonCommand(user, messageId, callbackCommand);
+            }
+            case WAIT_FOR_DATA_SEND ->  {
+                userService.handleWaitForDataCommand(user, messageId, callbackCommand);
+            }
+            case SET_TAG -> {
+                userService.handleSettingTag(user, Integer.parseInt(commandData[1]), messageId);
             }
             case STAT_MENU -> {
             }

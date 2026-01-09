@@ -13,9 +13,11 @@ import java.time.LocalDateTime;
 @FieldDefaults(level= AccessLevel.PRIVATE)
 public class UserMessage {
     Long messageId;
+    Long userId;
     MessageState state;
     LocalDateTime sent;
     int sum;
     LocalDate date;
     int tagId;
+    int expenseId;
 }
